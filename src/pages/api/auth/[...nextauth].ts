@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Providers from "next-auth/providers"
 import { query as q } from "faunadb"
 import { fauna } from "../../../services/fauna"
+import { session } from "next-auth/client"
 
 
 export default NextAuth({
@@ -16,20 +17,44 @@ export default NextAuth({
     // ...add more providers here
   ],
   callbacks: {
-    async signIn({ user, account, profile}) {
-      console.log('deveria estar aqui em baixo')
-      console.log(user)
+    async signIn( user, account, profile) {
+      //0console.log('deveria estar aqui em baixo')
+      //console.log(user)
       
-      /*const { email } = user
-      await fauna.query(
-        q.Create(
-          q.Collection('users'),
-          {data: { email }}
-
+      const { email } = user
+      try{
+        await fauna.query(
+        q.If(
+          q.Not(
+            q.Exists(
+              q.Match(
+                q.Index('users_by_email'),
+                q.Casefold(user.email)
+              )
+            )
+          ),
+          q.Create(
+            q.Collection('users'),
+            {data: {email}}
+          ),
+          q.Get(
+            q.Match(
+              q.Index('users_by_email'),
+              q.Casefold(user.email)
+            )
+          )
         )
-      )*/
+            )
+            
+            return true
+      }
+      catch (err) {
+        console.log(err)
+        return false;
+      }
+          
 
-      return true
+    
       
     },
   }
