@@ -19,7 +19,7 @@ interface HomeProps{
 }
 
 export default function Home( { product } : HomeProps) {
-  console.log(product)
+  //console.log(product)
 
   return (  
     <>
